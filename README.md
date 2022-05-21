@@ -3,9 +3,13 @@
 
 # 二、使用库
 selemium
+
 easyocr
+
 google driver
+
 request
+
 安装的时候大家自己下载一下吧
 
 # 三、功能
@@ -13,6 +17,7 @@ request
 2、填报的地址为你昨天填报的地址复制过来的。
 3、自动登陆，可以过验证码
 修改main函数中21 22行
+
 ```python
 username = '111111'  # 用户名
 password = '111111'  # 密码
