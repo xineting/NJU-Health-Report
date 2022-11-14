@@ -18,13 +18,14 @@ import time
 import datetime
 
 adapters.DEFAULT_RETRIES = 5
-username = '111111'  # 用户名
-password = '111111'  # 密码
+username = 'mf22222222'  # 用户名
+password = 'nicaicai'  # 密码
 
 
 class Shibie:
     def __init__(self, img):
         self.img = img
+
     def read_captcha(self, img_byte):
         img = Image.open(img_byte).convert('L')
         enh_bri = ImageEnhance.Brightness(img)
@@ -43,12 +44,14 @@ class Shibie:
             return "0"
         else:
             return result[0]
+
     def validate_code(self):
         return self.read_captcha(self.img)
 
+
 def get_data(JCRQ: str):
     old = datetime.datetime.strptime(JCRQ, "%Y-%m-%d %H")
-    new = old + datetime.timedelta(days=5)
+    new = old + datetime.timedelta(days=2)
     now = datetime.datetime.now()
     if now > new:
         return new.strftime("%Y-%m-%d+%H")
@@ -56,7 +59,7 @@ def get_data(JCRQ: str):
         return old.strftime("%Y-%m-%d+%H")
 
 
-def fillOneForm(wid, JCRQ, CURR_LOCATION,cookies):
+def fillOneForm(wid, JCRQ, CURR_LOCATION, cookies):
     info = 'WID=' + wid
     info += '&CURR_LOCATION=' + CURR_LOCATION
     info += '&IS_TWZC=1'
@@ -87,15 +90,17 @@ def fillOneForm(wid, JCRQ, CURR_LOCATION,cookies):
     return 'Failed.'
 
 
-def fillTheForms(res,cookies):
+def fillTheForms(res, cookies):
     JCRQ = res[1]['ZJHSJCSJ']
     CURR_LOCATION = res[1]['CURR_LOCATION']
     form = res[0]
-    print('Date: ' + form['TBRQ'] + '  ' + fillOneForm(wid=form['WID'], JCRQ=JCRQ, CURR_LOCATION=CURR_LOCATION,cookies=cookies))
+    print('Date: ' + form['TBRQ'] + '  ' + fillOneForm(wid=form['WID'], JCRQ=JCRQ, CURR_LOCATION=CURR_LOCATION,
+                                                       cookies=cookies))
 
 
 def DriverConfig():
     options = webdriver.ChromeOptions()
+    options.binary_location="/opt/google/chrome/google-chrome"
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-gpu')
@@ -115,6 +120,9 @@ def LogIn(driver):
             element = WebDriverWait(browser, 1).until(EC.presence_of_element_located((By.ID, "username")))
         finally:
             break
+    driver.find_element_by_class_name("showPass").click()
+    time.sleep(2)
+    print("ok")
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
     ss = soup.find("img", {"id": "captchaImg"})
@@ -126,6 +134,7 @@ def LogIn(driver):
     driver.find_element(by=By.ID, value="captchaImg").screenshot(picurl)
     shibie = Shibie(img=picurl)
     captchaResponse = shibie.validate_code()
+    print(captchaResponse)
     while trynum < 100:
         driver.find_element(by=By.ID, value="password").send_keys(password)
         driver.find_element(by=By.ID, value="username").send_keys(username)
@@ -133,12 +142,15 @@ def LogIn(driver):
         driver.find_element(by=By.CLASS_NAME, value="auth_login_btn").click()
         driver.get('https://authserver.nju.edu.cn/authserver/login')
         time.sleep(1)
+
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         ss = soup.find("img", {"id": "captchaImg"})
         if ss == None:
             break
         else:
+            driver.find_element_by_class_name("showPass").click()
+            time.sleep(1)
             driver.find_element(by=By.ID, value="captchaImg").screenshot("code.png")
             shibie = Shibie(img=picurl)
             captchaResponse = shibie.validate_code()
@@ -164,6 +176,7 @@ def GetList(cookies):
     response = requests.request("GET", url, headers=headers, data=payload)
     return response
 
+
 def GetCookie(driver):
     url = "https://ehallapp.nju.edu.cn/xgfw/sys/mrjkdkappnju/index.do"
     driver.get(url)
@@ -176,17 +189,18 @@ def GetCookie(driver):
     return cookiecontent
 
 
-def SubMit(response,cookies):
+def SubMit(response, cookies):
     res = json.loads(response.text)
     if res['code'] == '0':
         if res['msg'] == '成功':
-            fillTheForms(res['data'],cookies)
+            fillTheForms(res['data'], cookies)
     print('Completed')
     driver.quit()
+
 
 if __name__ == '__main__':
     driver = DriverConfig()
     LogIn(driver)
     cookies = GetCookie(driver)
-    response=GetList(cookies)
-    SubMit(response,cookies)
+    response = GetList(cookies)
+    SubMit(response, cookies)
