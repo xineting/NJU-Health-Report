@@ -3,15 +3,9 @@
 2022年11月15日，现在大卡需要手机验证码，大概5-7天要验证一次。
 
 # 二、使用库
-selemium
-
-easyocr
-
-google driver
-
-request
-
-安装的时候大家自己下载一下吧
+- selemium
+- easyocr
+- request
 
 # 三、功能
 1、核算上报时间为每过2天自动+2
